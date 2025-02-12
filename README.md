@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # AWS S3 Configuration
-S3_BUCKET = 'your-s3-bucket-name'
+S3_BUCKET = 'de-sales-data-1'
 S3_FILE = 'sales_data.csv'
 s3_client = boto3.client('s3')
 
@@ -51,7 +51,7 @@ def transform_data(df):
     return df
 
 def load_data(df):
-    """Loads transformed data into MySQL database with error handling"""
+   
     if df.empty:
         logging.warning("No data available for loading.")
         return
