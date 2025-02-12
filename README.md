@@ -44,6 +44,8 @@ def transform_data(df):
         return df
     logging.info("Transforming data")
     df.dropna(inplace=True)
+    df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce').fillna(0).astype(int)
+    df['UnitPrice'] = pd.to_numeric(df['UnitPrice'], errors='coerce').fillna(0.0)
     df['TotalPrice'] = df['Quantity'] * df['UnitPrice']
     logging.info("Data transformation complete")
     return df
@@ -76,9 +78,13 @@ def load_data(df):
         logging.info("Data successfully loaded into MySQL")
     except Exception as e:
         logging.error(f"Error loading data: {e}")
+        connection.rollback()
+        cursor.close()
+        connection.close()
 
 # Flask API
 app = Flask(__name__)
+
 @app.route('/sales', methods=['GET'])
 def get_sales():
     try:
@@ -99,6 +105,10 @@ def get_sales():
     except Exception as e:
         logging.error(f"Error fetching sales data: {e}")
         return jsonify({"error": str(e)})
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "healthy"})
 
 if __name__ == '__main__':
     df = extract_data()
