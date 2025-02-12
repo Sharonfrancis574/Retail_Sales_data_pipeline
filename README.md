@@ -1,11 +1,5 @@
 # Retail Sales Data Pipeline
 
-## Project Overview
-# This project demonstrates an ETL pipeline for processing retail sales data.
-# Data is extracted from CSV, transformed using Pandas, loaded into a MySQL database,
-# and served via a Flask API. AWS services like S3 and Lambda are used for scalability.
-
-# Import necessary libraries
 import pandas as pd
 import numpy as np
 import pymysql
@@ -51,16 +45,16 @@ def transform_data(df):
     return df
 
 def load_data(df):
-   
+    """Loads transformed data into MySQL database with error handling"""
     if df.empty:
         logging.warning("No data available for loading.")
         return
     try:
         logging.info("Connecting to MySQL database")
         connection = pymysql.connect(
-            host='your-mysql-host',
-            user='your-user',
-            password='your-password',
+            host='localhost',
+            user='root',
+            password='1234567',
             database='retail_db'
         )
         cursor = connection.cursor()
@@ -69,6 +63,11 @@ def load_data(df):
                 """
                 INSERT INTO sales (OrderID, Product, Quantity, UnitPrice, TotalPrice)
                 VALUES (%s, %s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    Product = VALUES(Product),
+                    Quantity = VALUES(Quantity),
+                    UnitPrice = VALUES(UnitPrice),
+                    TotalPrice = VALUES(TotalPrice)
                 """,
                 (row['OrderID'], row['Product'], row['Quantity'], row['UnitPrice'], row['TotalPrice'])
             )
@@ -85,7 +84,10 @@ def load_data(df):
 # Flask API
 app = Flask(__name__)
 
-@app.route('/sales', methods=['GET'])
+@app.route("/")
+def home():
+    return "Retail Sales Data Pipeline is Running!"
+
 def get_sales():
     try:
         logging.info("Fetching sales data from MySQL")
